@@ -8,11 +8,11 @@ jobs:
     - uses: oven-sh/setup-bun@v2
       with:
         bun-version: latest
-    - run: bun install  # Install deps
-    - run: bun test     # Vitest/convex-test (add package.json scripts)
-    - run: bun build    # Vite build
+    - run: bun install
+    - run: bun run test
+    - run: bun run build
     - name: Convex Deploy
       if: github.ref == 'refs/heads/main'
       run: npx convex deploy
       env:
-        CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}  # Add to repo secrets
+        CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
