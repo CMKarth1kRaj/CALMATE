@@ -1,0 +1,18 @@
+name: CI Build/Test
+on: [push, pull_request]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: latest
+    - run: bun install  # Install deps
+    - run: bun test     # Vitest/convex-test (add package.json scripts)
+    - run: bun build    # Vite build
+    - name: Convex Deploy
+      if: github.ref == 'refs/heads/main'
+      run: npx convex deploy
+      env:
+        CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}  # Add to repo secrets

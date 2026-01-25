@@ -1,0 +1,12 @@
+name: Auto Release
+on:
+  push:
+    branches: [main]
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: rymndhng/release-on-push-action@v1.2.5
+      with:
+        bump_version_scheme: minor  # Or patch/major
+        tag_prefix: v
