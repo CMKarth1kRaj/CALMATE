@@ -12,7 +12,8 @@ jobs:
     - run: bun run test
     - run: bun run build
     - name: Convex Deploy
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' && env.CONVEX_DEPLOY_KEY != ''
       run: npx convex deploy
       env:
         CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+      continue-on-error: true
