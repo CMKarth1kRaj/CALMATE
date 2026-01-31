@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+:root {
+  --background: #FFFFFF;
+  --foreground: #000000;
+  --card: #F2F2F7;
+  --card-foreground: #000000;
+  --secondary-text: #636366;
+  --border: rgba(0, 0, 0, 0.08);
+
+  --primary: #CCFF00;
+  --primary-foreground: #000000;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #FFFFFF;
+  --card: #1C1C1E;
+  --card-foreground: #FFFFFF;
+  --secondary-text: #8E8E93;
+  --border: rgba(255, 255, 255, 0.1);
+}
+
+@theme {
+  --color-app: var(--background);
+  --color-card-custom: var(--card);
+  --color-primary-custom: var(--foreground);
+  --color-secondary-custom: var(--secondary-text);
+  --color-border-custom: var(--border);
+  --color-primary: #CCFF00;
+  --color-primary-foreground: #000000;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  margin: 0;
+  overflow-x: hidden;
+}
+
+@layer utilities {
+  .bg-app {
+    background-color: var(--background);
+  }
+
+  .bg-card-custom {
+    background-color: var(--card);
+  }
+
+  .text-primary-custom {
+    color: var(--foreground);
+  }
+
+  .text-secondary-custom {
+    color: var(--secondary-text);
+  }
+
+  .border-custom {
+    border-color: var(--border);
+  }
+
+  .input-custom {
+    width: 100%;
+    padding: 1.25rem 1.5rem;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1.5rem;
+    color: var(--foreground);
+    font-weight: 700;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  .input-custom:focus {
+    border-color: #CCFF00;
+    box-shadow: 0 0 0 4px rgba(204, 255, 0, 0.1);
+  }
+
+  .onboarding-btn {
+    width: 100%;
+    background-color: #CCFF00;
+    color: #000000;
+    font-weight: 900;
+    padding: 1.5rem;
+    border-radius: 2rem;
+    font-size: 1.125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 20px rgba(204, 255, 0, 0.2);
+    cursor: pointer;
+    border: none;
+  }
+
+  .onboarding-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(204, 255, 0, 0.3);
+  }
+
+  .onboarding-btn:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  50% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}

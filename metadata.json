@@ -1,0 +1,7 @@
+{
+  "name": "CALMATE: AI Calorie Tracker",
+  "description": "An AI-based calorie and dish identifier. Upload or capture images of your meals, and the app automatically detects food items, estimates calorie content, and provides nutritional information. It maintains a visual history of your daily intake, helping you monitor trends and make healthier dietary choices.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
