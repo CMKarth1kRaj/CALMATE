@@ -28,6 +28,7 @@ export default defineSchema({
             v.literal("very_active"),
             v.literal("extremely_active")
         ),
+        state: v.optional(v.string()),
         createdAt: v.number(),
         updatedAt: v.number(),
     }).index("by_userId", ["userId"]).index("by_email", ["email"]),
@@ -40,13 +41,11 @@ export default defineSchema({
         targetProtein: v.number(),
         targetCarbs: v.number(),
         targetFat: v.number(),
-        targetSodium: v.number(),
         aiPlanSummary: v.optional(v.string()), // AI-generated daily plan
         consumedCalories: v.optional(v.number()),
         consumedProtein: v.optional(v.number()),
         consumedCarbs: v.optional(v.number()),
         consumedFat: v.optional(v.number()),
-        consumedSodium: v.optional(v.number()),
     })
         .index("by_userId", ["userId"])
         .index("by_userId_date", ["userId", "date"]),
@@ -66,7 +65,6 @@ export default defineSchema({
         totalProtein: v.number(),
         totalCarbs: v.number(),
         totalFat: v.number(),
-        totalSodium: v.number(),
     })
         .index("by_userId", ["userId"])
         .index("by_userId_timestamp", ["userId", "timestamp"]),
@@ -81,7 +79,6 @@ export default defineSchema({
         protein: v.number(),
         carbs: v.number(),
         fat: v.number(),
-        sodium: v.number(),
     }).index("by_mealId", ["mealId"]),
 
     // User streaks
@@ -91,16 +88,4 @@ export default defineSchema({
         bestStreakDays: v.number(),
         lastLogDate: v.string(), // YYYY-MM-DD
     }).index("by_userId", ["userId"]),
-
-    // Food database reference
-    foodDb: defineTable({
-        dishKey: v.string(), // Unique key like "roti", "idli"
-        displayName: v.string(),
-        perUnit: v.string(), // e.g., "1 medium roti"
-        calories: v.number(),
-        protein: v.number(),
-        carbs: v.number(),
-        fat: v.number(),
-        sodium: v.number(),
-    }).index("by_dishKey", ["dishKey"]),
 });

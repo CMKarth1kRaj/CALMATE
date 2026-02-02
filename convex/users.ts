@@ -46,14 +46,15 @@ export const ensureUserCreated = mutation({
         const newUserId = await ctx.db.insert("appUsers", {
             userId,
             email: args.email,
-            name: args.name || "User",
-            age: 25,
+            name: args.name || "New User",
+            age: 0,
             gender: "other",
-            heightCm: 170,
-            weightKg: 70,
+            heightCm: 0,
+            weightKg: 0,
             goal: "maintain",
             conditions: [],
-            activityLevel: "moderately_active",
+            activityLevel: "sedentary",
+            state: "Unknown",
             createdAt: Date.now(),
             updatedAt: Date.now(),
         });
@@ -105,6 +106,7 @@ export const updateUserProfile = mutation({
             )
         ),
         targetWeight: v.optional(v.number()),
+        state: v.optional(v.string()),
         conditions: v.optional(v.array(v.string())),
         activityLevel: v.optional(
             v.union(
@@ -139,6 +141,7 @@ export const updateUserProfile = mutation({
         if (args.heightCm !== undefined) updateData.heightCm = args.heightCm;
         if (args.weightKg !== undefined) updateData.weightKg = args.weightKg;
         if (args.goal !== undefined) updateData.goal = args.goal;
+        if (args.state !== undefined) updateData.state = args.state;
         if (args.conditions !== undefined) updateData.conditions = args.conditions;
         if (args.activityLevel !== undefined) updateData.activityLevel = args.activityLevel;
 
@@ -176,7 +179,6 @@ export const updateUserProfile = mutation({
         const targetProtein = Math.round((targetCalories * 0.3) / 4);
         const targetCarbs = Math.round((targetCalories * 0.4) / 4);
         const targetFat = Math.round((targetCalories * 0.3) / 9);
-        const targetSodium = 2300; // WHO recommendation
 
         // Create or update today's plan
         const today = new Date().toISOString().split("T")[0];
@@ -191,7 +193,6 @@ export const updateUserProfile = mutation({
                 targetProtein,
                 targetCarbs,
                 targetFat,
-                targetSodium,
             });
         } else {
             await ctx.db.insert("plans", {
@@ -201,12 +202,10 @@ export const updateUserProfile = mutation({
                 targetProtein,
                 targetCarbs,
                 targetFat,
-                targetSodium,
                 consumedCalories: 0,
                 consumedProtein: 0,
                 consumedCarbs: 0,
                 consumedFat: 0,
-                consumedSodium: 0,
             });
         }
 

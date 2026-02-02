@@ -105,11 +105,18 @@ export const logMealFromAI = mutation({
             v.literal("snack")
         ),
         imageUrl: v.string(),
+        totalCalories: v.number(),
+        totalProtein: v.number(),
+        totalCarbs: v.number(),
+        totalFat: v.number(),
         dishes: v.array(
             v.object({
-                dishKey: v.string(),
                 dishName: v.string(),
-                servings: v.number(),
+                quantity: v.string(),
+                calories: v.number(),
+                protein: v.number(),
+                carbs: v.number(),
+                fat: v.number(),
             })
         ),
     },
@@ -119,81 +126,30 @@ export const logMealFromAI = mutation({
             throw new Error("Not authenticated");
         }
 
-        // Look up nutritional values from foodDb
-        let totalCalories = 0;
-        let totalProtein = 0;
-        let totalCarbs = 0;
-        let totalFat = 0;
-        let totalSodium = 0;
-
-        const dishesWithNutrition = await Promise.all(
-            args.dishes.map(async (dish) => {
-                const foodItem = await ctx.db
-                    .query("foodDb")
-                    .withIndex("by_dishKey", (q) => q.eq("dishKey", dish.dishKey))
-                    .first();
-
-                if (!foodItem) {
-                    // Fallback if food not in database
-                    return {
-                        ...dish,
-                        calories: 0,
-                        protein: 0,
-                        carbs: 0,
-                        fat: 0,
-                        sodium: 0,
-                    };
-                }
-
-                const calories = foodItem.calories * dish.servings;
-                const protein = foodItem.protein * dish.servings;
-                const carbs = foodItem.carbs * dish.servings;
-                const fat = foodItem.fat * dish.servings;
-                const sodium = foodItem.sodium * dish.servings;
-
-                totalCalories += calories;
-                totalProtein += protein;
-                totalCarbs += carbs;
-                totalFat += fat;
-                totalSodium += sodium;
-
-                return {
-                    ...dish,
-                    calories,
-                    protein,
-                    carbs,
-                    fat,
-                    sodium,
-                };
-            })
-        );
-
         // Create meal record
         const mealId = await ctx.db.insert("meals", {
             userId,
             timestamp: Date.now(),
             type: args.mealType,
             imageUrl: args.imageUrl,
-            totalCalories: Math.round(totalCalories),
-            totalProtein: Math.round(totalProtein),
-            totalCarbs: Math.round(totalCarbs),
-            totalFat: Math.round(totalFat),
-            totalSodium: Math.round(totalSodium),
+            totalCalories: Math.round(args.totalCalories),
+            totalProtein: Math.round(args.totalProtein),
+            totalCarbs: Math.round(args.totalCarbs),
+            totalFat: Math.round(args.totalFat),
         });
 
         // Create meal items
         await Promise.all(
-            dishesWithNutrition.map((dish) =>
+            args.dishes.map((dish) =>
                 ctx.db.insert("mealItems", {
                     mealId,
-                    dishKey: dish.dishKey,
+                    dishKey: dish.dishName.toLowerCase().replace(/ /g, "_"),
                     dishName: dish.dishName,
-                    servings: dish.servings,
+                    servings: 1, // Quantity is now a string like "1.5x (1 cup)"
                     calories: Math.round(dish.calories),
                     protein: Math.round(dish.protein),
                     carbs: Math.round(dish.carbs),
                     fat: Math.round(dish.fat),
-                    sodium: Math.round(dish.sodium),
                 })
             )
         );
@@ -206,7 +162,8 @@ export const logMealFromAI = mutation({
             .first();
 
         if (streak) {
-            const lastDate = new Date(streak.lastLogDate);
+            const lastDateString = streak.lastLogDate;
+            const lastDate = new Date(lastDateString);
             const todayDate = new Date(today);
             const daysDiff = Math.floor(
                 (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -240,11 +197,10 @@ export const logMealFromAI = mutation({
 
         if (plan) {
             await ctx.db.patch(plan._id, {
-                consumedCalories: (plan.consumedCalories || 0) + Math.round(totalCalories),
-                consumedProtein: (plan.consumedProtein || 0) + Math.round(totalProtein),
-                consumedCarbs: (plan.consumedCarbs || 0) + Math.round(totalCarbs),
-                consumedFat: (plan.consumedFat || 0) + Math.round(totalFat),
-                consumedSodium: (plan.consumedSodium || 0) + Math.round(totalSodium),
+                consumedCalories: (plan.consumedCalories || 0) + Math.round(args.totalCalories),
+                consumedProtein: (plan.consumedProtein || 0) + Math.round(args.totalProtein),
+                consumedCarbs: (plan.consumedCarbs || 0) + Math.round(args.totalCarbs),
+                consumedFat: (plan.consumedFat || 0) + Math.round(args.totalFat),
             });
         }
 

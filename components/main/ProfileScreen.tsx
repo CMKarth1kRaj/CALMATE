@@ -2,7 +2,8 @@ import React from 'react';
 import { useAppContext } from '../../context/AppContext';
 
 const ProfileScreen: React.FC = () => {
-    const { userProfile, signOut, theme, toggleTheme } = useAppContext();
+    const { userProfile, signOut, theme, toggleTheme, meals } = useAppContext();
+    const [historyRange, setHistoryRange] = React.useState<'1D' | '7D' | '30D' | '1Y' | 'ALL'>('7D');
 
     if (!userProfile) {
         return <div className="p-10 text-center text-primary-custom font-black animate-pulse uppercase tracking-widest">Loading Bio-Profile...</div>
@@ -12,6 +13,41 @@ const ProfileScreen: React.FC = () => {
     const level = 12;
     const nextLevelXp = 3000;
     const progress = (xp / nextLevelXp) * 100;
+
+    // History Analytics Logic
+    const getHistoryStats = () => {
+        const now = new Date();
+        const getDateDiff = (date: Date) => {
+            const diffTime = Math.abs(now.getTime() - date.getTime());
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        };
+
+        const filteredMeals = meals.filter(meal => {
+            const mealDate = new Date(meal.timestamp);
+            const daysAgo = getDateDiff(mealDate);
+
+            switch (historyRange) {
+                case '1D': return daysAgo <= 1;
+                case '7D': return daysAgo <= 7;
+                case '30D': return daysAgo <= 30;
+                case '1Y': return daysAgo <= 365;
+                case 'ALL': return true;
+                default: return true;
+            }
+        });
+
+        const totalCals = filteredMeals.reduce((acc, curr) => acc + curr.totalCalories, 0);
+        const uniqueDays = new Set(filteredMeals.map(m => new Date(m.timestamp).toDateString())).size || 1;
+
+        return {
+            totalMeals: filteredMeals.length,
+            avgCalories: Math.round(totalCals / uniqueDays),
+            totalProtein: Math.round(filteredMeals.reduce((acc, curr) => acc + curr.totalProtein, 0) / uniqueDays),
+            bestStreak: 12 // Placeholder for complex streak logic
+        };
+    };
+
+    const stats = getHistoryStats();
 
     return (
         <div className="p-6 md:p-10 bg-app min-h-full max-w-5xl mx-auto font-sans animate-in fade-in duration-700">
@@ -55,28 +91,89 @@ const ProfileScreen: React.FC = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="flex flex-col gap-12">
                 {/* Stats Section */}
-                <div className="lg:col-span-2 space-y-12">
-                    <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="p-8 bg-card-custom rounded-[3rem] border border-border-custom shadow-sm group hover:bg-primary/5 transition-all duration-300">
-                            <p className="text-secondary-custom font-black uppercase text-[10px] tracking-[0.4em] mb-2 group-hover:text-primary transition-colors">Current Weight</p>
-                            <h3 className="text-4xl font-black text-primary-custom italic tracking-tighter uppercase">{userProfile.weight}<span className="text-sm not-italic ml-2 opacity-40">kg</span></h3>
-                        </div>
-                        <div className="p-8 bg-card-custom rounded-[3rem] border border-border-custom shadow-sm group hover:bg-primary/5 transition-all duration-300">
-                            <p className="text-secondary-custom font-black uppercase text-[10px] tracking-[0.4em] mb-2 group-hover:text-primary transition-colors">Target Objective</p>
-                            <h3 className="text-4xl font-black text-primary-custom italic tracking-tighter uppercase">{userProfile.targetWeight}<span className="text-sm not-italic ml-2 opacity-40">kg</span></h3>
-                        </div>
-                        <div className="p-8 bg-card-custom rounded-[3rem] border border-border-custom shadow-sm group hover:bg-primary/5 transition-all duration-300">
-                            <p className="text-secondary-custom font-black uppercase text-[10px] tracking-[0.4em] mb-2 group-hover:text-primary transition-colors">Physical Height</p>
-                            <h3 className="text-4xl font-black text-primary-custom italic tracking-tighter uppercase">{userProfile.height}<span className="text-sm not-italic ml-2 opacity-40">cm</span></h3>
-                        </div>
-                        <div className="p-8 bg-card-custom rounded-[3rem] border border-border-custom shadow-sm group hover:bg-primary/5 transition-all duration-300">
-                            <p className="text-secondary-custom font-black uppercase text-[10px] tracking-[0.4em] mb-2 group-hover:text-primary transition-colors">Daily Fuel Cap</p>
-                            <h3 className="text-4xl font-black text-primary-custom italic tracking-tighter uppercase">{userProfile.dailyCalorieTarget}<span className="text-sm not-italic ml-2 opacity-40">kcal</span></h3>
-                        </div>
-                    </section>
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="p-8 bg-card-custom rounded-[3rem] border border-border-custom shadow-sm group hover:bg-primary/5 transition-all duration-300">
+                        <p className="text-secondary-custom font-black uppercase text-[10px] tracking-[0.4em] mb-2 group-hover:text-primary transition-colors">Current Weight</p>
+                        <h3 className="text-4xl font-black text-primary-custom italic tracking-tighter uppercase">{userProfile.weight}<span className="text-sm not-italic ml-2 opacity-40">kg</span></h3>
+                    </div>
+                    <div className="p-8 bg-card-custom rounded-[3rem] border border-border-custom shadow-sm group hover:bg-primary/5 transition-all duration-300">
+                        <p className="text-secondary-custom font-black uppercase text-[10px] tracking-[0.4em] mb-2 group-hover:text-primary transition-colors">Target Objective</p>
+                        <h3 className="text-4xl font-black text-primary-custom italic tracking-tighter uppercase">{userProfile.targetWeight}<span className="text-sm not-italic ml-2 opacity-40">kg</span></h3>
+                    </div>
+                    <div className="p-8 bg-card-custom rounded-[3rem] border border-border-custom shadow-sm group hover:bg-primary/5 transition-all duration-300">
+                        <p className="text-secondary-custom font-black uppercase text-[10px] tracking-[0.4em] mb-2 group-hover:text-primary transition-colors">Physical Height</p>
+                        <h3 className="text-4xl font-black text-primary-custom italic tracking-tighter uppercase">{userProfile.height}<span className="text-sm not-italic ml-2 opacity-40">cm</span></h3>
+                    </div>
+                    <div className="p-8 bg-card-custom rounded-[3rem] border border-border-custom shadow-sm group hover:bg-primary/5 transition-all duration-300">
+                        <p className="text-secondary-custom font-black uppercase text-[10px] tracking-[0.4em] mb-2 group-hover:text-primary transition-colors">Daily Fuel Cap</p>
+                        <h3 className="text-4xl font-black text-primary-custom italic tracking-tighter uppercase">{userProfile.dailyCalorieTarget}<span className="text-sm not-italic ml-2 opacity-40">kcal</span></h3>
+                    </div>
+                </section>
 
+                {/* Regional & Health Info */}
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-8 bg-card-custom rounded-[3rem] border border-border-custom shadow-sm flex items-center justify-between">
+                        <div>
+                            <p className="text-secondary-custom font-black uppercase text-[10px] tracking-[0.4em] mb-2">Native State</p>
+                            <h3 className="text-2xl font-black text-primary-custom italic tracking-tighter uppercase">{userProfile.state}</h3>
+                        </div>
+                        <div className="text-4xl">🇮🇳</div>
+                    </div>
+                    <div className="p-8 bg-card-custom rounded-[3rem] border border-border-custom shadow-sm">
+                        <p className="text-secondary-custom font-black uppercase text-[10px] tracking-[0.4em] mb-2">Health Bio-Data</p>
+                        <div className="flex flex-wrap gap-2">
+                            {userProfile.healthIssues.length > 0 ? (
+                                userProfile.healthIssues.map(issue => (
+                                    <span key={issue} className="px-3 py-1 bg-red-500/10 text-red-500 text-[9px] font-black rounded-full border border-red-500/20 uppercase tracking-tighter">
+                                        {issue}
+                                    </span>
+                                ))
+                            ) : (
+                                <span className="text-secondary-custom font-black text-[10px] uppercase opacity-40 italic">No constraints detected</span>
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                {/* History Analytics */}
+                <section className="bg-card-custom rounded-[3.5rem] p-10 border border-border-custom shadow-sm">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                        <h2 className="text-xl font-black text-primary-custom uppercase tracking-[0.2em] italic">Temporal Analysis</h2>
+                        <div className="flex p-1 bg-app rounded-full border border-border-custom">
+                            {['1D', '7D', '30D', '1Y', 'ALL'].map((range) => (
+                                <button
+                                    key={range}
+                                    onClick={() => setHistoryRange(range as any)}
+                                    className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${historyRange === range ? 'bg-[#CCFF00] text-black shadow-lg' : 'text-secondary-custom hover:text-primary-custom'}`}
+                                >
+                                    {range}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="p-8 bg-app/50 rounded-[2.5rem] border border-border-custom">
+                            <div className="text-secondary-custom text-[10px] font-black uppercase tracking-[0.3em] mb-4">Total Interactions</div>
+                            <div className="text-5xl font-black text-primary-custom tracking-tighter">{stats.totalMeals}</div>
+                            <div className="text-xs text-secondary-custom font-bold mt-2 opacity-60">MEALS LOGGED</div>
+                        </div>
+                        <div className="p-8 bg-app/50 rounded-[2.5rem] border border-border-custom">
+                            <div className="text-secondary-custom text-[10px] font-black uppercase tracking-[0.3em] mb-4">Avg. Daily Fuel</div>
+                            <div className="text-5xl font-black text-primary-custom tracking-tighter">{stats.avgCalories}</div>
+                            <div className="text-xs text-secondary-custom font-bold mt-2 opacity-60">KCAL / DAY</div>
+                        </div>
+                        <div className="p-8 bg-app/50 rounded-[2.5rem] border border-border-custom">
+                            <div className="text-secondary-custom text-[10px] font-black uppercase tracking-[0.3em] mb-4">Avg. Protein</div>
+                            <div className="text-5xl font-black text-primary-custom tracking-tighter">{stats.totalProtein}g</div>
+                            <div className="text-xs text-secondary-custom font-bold mt-2 opacity-60">PER DAY</div>
+                        </div>
+                    </div>
+                </section>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Achievements */}
                     <section className="bg-card-custom rounded-[3.5rem] p-10 border border-border-custom shadow-sm">
                         <h2 className="text-xl font-black text-primary-custom mb-10 uppercase tracking-[0.2em] italic">Bio-Achievements</h2>
@@ -88,10 +185,8 @@ const ProfileScreen: React.FC = () => {
                             ))}
                         </div>
                     </section>
-                </div>
 
-                {/* Settings Column */}
-                <div className="space-y-8">
+                    {/* Settings Column */}
                     <section className="bg-card-custom rounded-[3.5rem] p-10 border border-border-custom shadow-xl">
                         <h2 className="text-xl font-black text-primary-custom mb-10 uppercase tracking-[0.2em] italic">System Configuration</h2>
                         <div className="space-y-4">

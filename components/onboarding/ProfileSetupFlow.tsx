@@ -4,6 +4,19 @@ import { Gender, Goal, ActivityLevel, UserProfile } from '../../types';
 
 type FormData = Omit<UserProfile, 'dailyCalorieTarget'>;
 
+const INDIAN_STATES = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+    "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
+    "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+    "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Delhi", "Unknown"
+];
+
+const HEALTH_ISSUES = [
+    "Diabetes", "Hypertension", "Thyroid", "PCOD/PCOS", "Gluten Allergy",
+    "Lactose Intolerance", "Egg Allergy", "Nut Allergy", "High Cholesterol"
+];
+
 const StepIndicator: React.FC<{ current: number; total: number }> = ({ current, total }) => (
     <div className="flex justify-center space-x-3 my-10">
         {Array.from({ length: total }).map((_, i) => (
@@ -168,7 +181,64 @@ const Step3_Goal: React.FC<{ onNext: () => void; data: FormData; setData: React.
     </div>
 );
 
-const Step4_Activity: React.FC<{ onNext: () => void; data: FormData; setData: React.Dispatch<React.SetStateAction<FormData>>; loading?: boolean }> = ({ onNext, data, setData, loading }) => {
+const Step4_RegionAndHealth: React.FC<{ onNext: () => void; data: FormData; setData: React.Dispatch<React.SetStateAction<FormData>> }> = ({ onNext, data, setData }) => {
+    const toggleIssue = (issue: string) => {
+        setData(d => ({
+            ...d,
+            healthIssues: d.healthIssues.includes(issue)
+                ? d.healthIssues.filter(i => i !== issue)
+                : [...d.healthIssues, issue]
+        }));
+    };
+
+    return (
+        <div className="flex flex-col items-center text-center animate-in fade-in slide-in-from-right-6 duration-700 w-full px-4">
+            <h2 className="text-5xl font-black text-primary-custom tracking-tighter italic mb-2">BIO-DATA</h2>
+            <p className="text-secondary-custom font-bold uppercase text-[11px] tracking-[0.25em] mb-12">Regional & Health check.</p>
+
+            <div className="w-full space-y-8 max-w-sm">
+                <div className="space-y-3">
+                    <label className="block text-left text-[10px] font-black uppercase tracking-widest text-secondary-custom ml-6">Native State (for regional food)</label>
+                    <div className="relative">
+                        <select
+                            value={data.state}
+                            onChange={e => setData(d => ({ ...d, state: e.target.value }))}
+                            className="w-full p-5 bg-card-custom border border-border-custom rounded-[1.8rem] text-lg font-bold text-primary-custom focus:ring-4 ring-primary/20 outline-none transition-all duration-300 shadow-sm appearance-none"
+                        >
+                            {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <div className="absolute inset-y-0 right-6 flex items-center pointer-events-none text-secondary-custom text-xs">▼</div>
+                    </div>
+                </div>
+
+                <div className="space-y-3">
+                    <label className="block text-left text-[10px] font-black uppercase tracking-widest text-secondary-custom ml-6">Health Conditions / Allergies</label>
+                    <div className="grid grid-cols-2 gap-3">
+                        {HEALTH_ISSUES.map(issue => (
+                            <button
+                                key={issue}
+                                onClick={() => toggleIssue(issue)}
+                                className={`p-3 rounded-2xl text-[9px] font-black uppercase tracking-tighter transition-all duration-300 border ${data.healthIssues.includes(issue)
+                                        ? 'bg-primary border-primary text-primary-foreground'
+                                        : 'bg-card-custom border-border-custom text-secondary-custom opacity-60'
+                                    }`}
+                            >
+                                {issue}
+                            </button>
+                        ))}
+                    </div>
+                    {data.healthIssues.length === 0 && <p className="text-[9px] text-secondary-custom font-bold italic mt-2">None selected - Standard plan will be applied.</p>}
+                </div>
+            </div>
+
+            <div className="mt-16 w-full max-w-sm">
+                <button onClick={onNext} className="w-full bg-primary text-primary-foreground flex items-center justify-center font-black py-5 rounded-[2.2rem] text-xl transition-all duration-300 shadow-xl hover:-translate-y-1 active:scale-95 uppercase tracking-widest cursor-pointer">Last Step</button>
+            </div>
+        </div>
+    );
+};
+
+const Step5_Activity: React.FC<{ onNext: () => void; data: FormData; setData: React.Dispatch<React.SetStateAction<FormData>>; loading?: boolean }> = ({ onNext, data, setData, loading }) => {
     const levels = Object.values(ActivityLevel);
     return (
         <div className="flex flex-col items-center text-center animate-in fade-in slide-in-from-right-6 duration-700 w-full px-4">
@@ -213,10 +283,12 @@ const ProfileSetupFlow: React.FC = () => {
         goal: Goal.WeightLoss,
         targetWeight: 70,
         activityLevel: ActivityLevel.ModeratelyActive,
+        state: 'Unknown',
+        healthIssues: []
     });
 
     const nextStep = () => {
-        if (step < 4) {
+        if (step < 5) {
             setStep(s => s + 1);
         }
     };
@@ -241,14 +313,15 @@ const ProfileSetupFlow: React.FC = () => {
             case 1: return <Step1_BasicInfo onNext={nextStep} data={formData} setData={setFormData} />;
             case 2: return <Step2_BodyMetrics onNext={nextStep} data={formData} setData={setFormData} />;
             case 3: return <Step3_Goal onNext={nextStep} data={formData} setData={setFormData} />;
-            case 4: return <Step4_Activity onNext={handleFinish} data={formData} setData={setFormData} loading={loading} />;
+            case 4: return <Step4_RegionAndHealth onNext={nextStep} data={formData} setData={setFormData} />;
+            case 5: return <Step5_Activity onNext={handleFinish} data={formData} setData={setFormData} loading={loading} />;
             default: return null;
         }
     };
 
     return (
         <div className="flex flex-col h-screen w-full p-8 bg-app overflow-y-auto no-scrollbar items-center pb-20">
-            <StepIndicator current={step} total={4} />
+            <StepIndicator current={step} total={5} />
             <div className="flex-1 flex flex-col justify-center w-full max-w-lg">
                 {renderStep()}
             </div>

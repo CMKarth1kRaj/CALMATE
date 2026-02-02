@@ -98,7 +98,9 @@ const PlannerScreen: React.FC = () => {
                 <div className="absolute -left-10 top-0 w-1 bg-[#CCFF00] h-full opacity-30 rounded-full hidden lg:block"></div>
                 <h1 className="text-4xl md:text-7xl font-black text-primary-custom mb-6 tracking-tighter italic">DAILY PLAN</h1>
                 <p className="text-secondary-custom font-bold text-lg leading-relaxed uppercase tracking-widest text-[11px] opacity-70">
-                    Proprietary strategy for <span className="text-primary-custom font-black underline decoration-[#CCFF00]/40">{userProfile.dailyCalorieTarget} kcal</span> objective.
+                    {userProfile.dailyCalorieTarget > 0
+                        ? <>Proprietary strategy for <span className="text-primary-custom font-black underline decoration-[#CCFF00]/40">{userProfile.dailyCalorieTarget} kcal</span> objective.</>
+                        : "Configure your bio-profile to generate a tailored nutritional strategy."}
                 </p>
             </header>
 

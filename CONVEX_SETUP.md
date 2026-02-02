@@ -6,7 +6,7 @@ Since Convex requires interactive login, you'll need to run this once:
 
 ### Step 1: Initialize Convex
 ```bash
-npm run convex:dev
+bun run convex:dev
 ```
 
 This will:
@@ -18,19 +18,19 @@ This will:
 ### Step 2: Seed the Food Database
 After Convex is initialized, seed the food database:
 ```bash
-npx convex run foodDb:seedFoodDatabase
+bun x convex run foodDb:seedFoodDatabase
 ```
 
 ## Running the App
 
 ### Terminal 1: Convex Backend
 ```bash
-npm run convex:dev
+bun run convex:dev
 ```
 
 ### Terminal 2: React Frontend
 ```bash
-npm run dev
+bun run dev
 ```
 
 ## Convex Dashboard

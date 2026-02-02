@@ -40,6 +40,8 @@ export interface UserProfile {
     targetWeight: number;
     activityLevel: ActivityLevel;
     dailyCalorieTarget: number;
+    state: string;
+    healthIssues: string[];
 }
 
 export interface FoodItem {

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { Meal, MealType, Screen } from '../../types';
 import { StreakIcon, ProteinIcon, CarbsIcon, FatsIcon, CameraIcon, ProfileIcon } from '../icons';
+import ChatAssistant from './ChatAssistant';
 
 const CircularProgress: React.FC<{
     progress: number;
@@ -45,15 +46,16 @@ const CircularProgress: React.FC<{
     );
 };
 
-const MacroCard: React.FC<{ label: string; current: number; target: number; unit: string; color: string; icon: React.ReactNode }> = ({ label, current, target, unit, color, icon }) => {
-    const left = Math.max(0, target - current);
+const MacroCard: React.FC<{ label: string; current: number; target: number; unit: string; color: string; icon: React.ReactNode; mode?: 'remaining' | 'consumed' }> = ({ label, current, target, unit, color, icon, mode = 'remaining' }) => {
+    const valueToShow = mode === 'remaining' ? Math.max(0, target - current) : current;
+    const subText = mode === 'remaining' ? 'LEFT' : 'DONE';
     const progress = (current / (target || 1)) * 100;
 
     return (
         <div className="p-6 bg-card-custom rounded-[2.5rem] flex flex-col items-start shadow-lg border border-border-custom group hover:scale-[1.02] transition-transform duration-300 backdrop-blur-sm">
             <div className="mb-4">
-                <p className="text-2xl font-black text-primary-custom truncate">{left}{unit}</p>
-                <p className="text-[10px] text-secondary-custom uppercase font-black tracking-widest leading-none">{label} LEFT</p>
+                <p className="text-2xl font-black text-primary-custom truncate">{Math.round(valueToShow)}{unit}</p>
+                <p className="text-[10px] text-secondary-custom uppercase font-black tracking-widest leading-none">{label} {subText}</p>
             </div>
             <div className="mt-2 self-center">
                 <CircularProgress
@@ -87,7 +89,7 @@ const MealCardList: React.FC<{ meal: any }> = ({ meal }) => {
                     <span className="text-[10px] text-secondary-custom font-bold uppercase tracking-widest">{time}</span>
                 </div>
                 <div className="flex items-center text-primary-custom font-black text-sm mb-2 group-hover:text-primary transition-colors">
-                    <span className="mr-1">🔥</span> {meal.totalCalories} kcal
+                    <span className="mr-1">🔥</span> {Math.round(meal.totalCalories)} kcal
                 </div>
                 <div className="flex space-x-3">
                     <div className="flex items-center text-[9px] font-black uppercase text-secondary-custom">
@@ -123,10 +125,32 @@ const DashboardScreen: React.FC = () => {
         return <div className="p-4 text-primary-custom font-black animate-pulse uppercase tracking-widest">Initializing Neural Link...</div>;
     }
 
-    const targetCalories = todayPlan?.targetCalories || 2000;
-    const consumedCalories = todayPlan?.consumedCalories || 0;
-    const caloriesLeft = Math.max(0, targetCalories - consumedCalories);
-    const calorieProgress = (consumedCalories / targetCalories) * 100;
+    const getDateString = (date: Date) => date.toISOString().split('T')[0];
+
+    const todayStr = getDateString(new Date());
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = getDateString(yesterday);
+
+    const targetDateStr = activeTab === 'Today' ? todayStr : yesterdayStr;
+
+    const filteredMeals = meals.filter(meal => getDateString(new Date(meal.timestamp)) === targetDateStr);
+
+    const consumedCalories = filteredMeals.reduce((sum, meal) => sum + meal.totalCalories, 0);
+    const consumedProtein = filteredMeals.reduce((sum, meal) => sum + meal.totalProtein, 0);
+    const consumedCarbs = filteredMeals.reduce((sum, meal) => sum + meal.totalCarbs, 0);
+    const consumedFat = filteredMeals.reduce((sum, meal) => sum + meal.totalFat, 0);
+
+    const targetCalories = todayPlan?.targetCalories || userProfile?.dailyCalorieTarget || 0;
+    const caloriesLeft = targetCalories > 0 ? Math.max(0, targetCalories - consumedCalories) : 0;
+    const calorieProgress = targetCalories > 0 ? (consumedCalories / targetCalories) * 100 : 0;
+    const hasNoTargets = targetCalories === 0;
+
+    // Logic for display: Today shows 'Left', Yesterday shows 'Consumed'
+    const isToday = activeTab === 'Today';
+    const heroValue = isToday ? caloriesLeft : consumedCalories;
+    const heroLabel = isToday ? 'CALORIES LEFT' : 'CALORIES CONSUMED';
+    const cardMode = isToday ? 'remaining' : 'consumed';
 
     return (
         <div className="p-6 md:p-8 lg:p-12 bg-app min-h-full font-sans select-none max-w-[1400px] mx-auto animate-in fade-in duration-700">
@@ -173,8 +197,12 @@ const DashboardScreen: React.FC = () => {
                     {/* Main Goal Card */}
                     <section className="bg-card-custom rounded-[4rem] p-10 flex flex-col md:flex-row justify-between items-center shadow-2xl border border-border-custom relative overflow-hidden group">
                         <div className="relative z-10 text-center md:text-left mb-8 md:mb-0">
-                            <h2 className="text-7xl md:text-8xl font-black text-primary-custom tracking-tighter italic">{caloriesLeft}</h2>
-                            <p className="text-secondary-custom font-black mt-2 text-xl uppercase tracking-tighter opacity-60">Calories left</p>
+                            <h2 className={`font-black text-primary-custom tracking-tighter italic ${hasNoTargets ? 'text-4xl' : 'text-7xl md:text-8xl'}`}>
+                                {hasNoTargets ? "PROFILE INCOMPLETE" : Math.round(heroValue)}
+                            </h2>
+                            <p className="text-secondary-custom font-black mt-2 text-xl uppercase tracking-tighter opacity-60">
+                                {hasNoTargets ? "FINISH SETUP IN PROFILE TAB" : heroLabel}
+                            </p>
                         </div>
                         <div className="relative z-10">
                             <CircularProgress
@@ -194,27 +222,30 @@ const DashboardScreen: React.FC = () => {
                     <section className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <MacroCard
                             label="Protein"
-                            current={todayPlan?.consumedProtein || 0}
-                            target={todayPlan?.targetProtein || 150}
+                            current={consumedProtein}
+                            target={todayPlan?.targetProtein || 0}
                             unit="g"
                             color="#FF3B30"
                             icon={<ProteinIcon className="w-4 h-4 text-primary-custom" />}
+                            mode={cardMode}
                         />
                         <MacroCard
                             label="Carbs"
-                            current={todayPlan?.consumedCarbs || 0}
-                            target={todayPlan?.targetCarbs || 200}
+                            current={consumedCarbs}
+                            target={todayPlan?.targetCarbs || 0}
                             unit="g"
                             color="#FF9500"
                             icon={<CarbsIcon className="w-4 h-4 text-primary-custom" />}
+                            mode={cardMode}
                         />
                         <MacroCard
                             label="Fats"
-                            current={todayPlan?.consumedFat || 0}
-                            target={todayPlan?.targetFat || 66}
+                            current={consumedFat}
+                            target={todayPlan?.targetFat || 0}
                             unit="g"
                             color="#007AFF"
                             icon={<FatsIcon className="w-4 h-4 text-primary-custom" />}
+                            mode={cardMode}
                         />
                     </section>
                 </div>
@@ -244,6 +275,7 @@ const DashboardScreen: React.FC = () => {
                 </aside>
             </div>
             <div className="h-24 md:hidden"></div>
+            <ChatAssistant />
         </div>
     );
 };

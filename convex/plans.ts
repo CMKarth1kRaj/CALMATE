@@ -35,7 +35,6 @@ export const saveDailyPlanSummary = mutation({
         targetProtein: v.optional(v.number()),
         targetCarbs: v.optional(v.number()),
         targetFat: v.optional(v.number()),
-        targetSodium: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         const userId = await getAuthUserId(ctx);
@@ -56,7 +55,6 @@ export const saveDailyPlanSummary = mutation({
             ...(args.targetProtein !== undefined && { targetProtein: args.targetProtein }),
             ...(args.targetCarbs !== undefined && { targetCarbs: args.targetCarbs }),
             ...(args.targetFat !== undefined && { targetFat: args.targetFat }),
-            ...(args.targetSodium !== undefined && { targetSodium: args.targetSodium }),
         };
 
         if (existingPlan) {
@@ -71,13 +69,11 @@ export const saveDailyPlanSummary = mutation({
                 targetProtein: args.targetProtein ?? 150,
                 targetCarbs: args.targetCarbs ?? 200,
                 targetFat: args.targetFat ?? 66,
-                targetSodium: args.targetSodium ?? 2300,
                 aiPlanSummary: args.aiPlanSummary,
                 consumedCalories: 0,
                 consumedProtein: 0,
                 consumedCarbs: 0,
                 consumedFat: 0,
-                consumedSodium: 0,
             });
             return planId;
         }

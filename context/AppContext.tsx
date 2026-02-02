@@ -71,21 +71,26 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
         if (isAuthenticated) {
             if (convexUser) {
-                const isProfileComplete = convexUser.name && convexUser.name !== "New User" && convexUser.name !== "User" && convexUser.age > 0;
+                const isProfileComplete = convexUser.name && convexUser.name !== "New User" && convexUser.age > 0;
 
                 if (isProfileComplete) {
                     if (showOnboarding) {
                         setShowOnboarding(false);
                     }
                 } else {
-                    if (onboardingStep !== 'profileSetup') {
-                        setShowOnboarding(true);
+                    // Only force move if we are at the welcome or auth stage but already logged in
+                    // This allows the Splash screen flow and "Welcome" sequence to feel natural
+                    if (onboardingStep === 'welcome' || onboardingStep === 'auth') {
                         setOnboardingStep('profileSetup');
                     }
                 }
             }
         } else {
             setShowOnboarding(true);
+            // If they are logged out, make sure they start at splash/welcome and not a deep setup screen
+            if (onboardingStep === 'profileSetup' || onboardingStep === 'features') {
+                setOnboardingStep('welcome');
+            }
         }
     }, [isAuthenticated, convexUser, onboardingStep, showOnboarding, ensureUserCreated]);
 
@@ -115,7 +120,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             weightKg: profile.weight,
             goal: profile.goal as any,
             activityLevel: profile.activityLevel as any,
-            conditions: [], // Default empty for now
+            state: profile.state,
+            conditions: profile.healthIssues,
         });
     };
 
@@ -123,10 +129,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         await logMealMutation({
             mealType: mealData.type,
             imageUrl: mealData.photo || "",
+            totalCalories: mealData.totalCalories,
+            totalProtein: mealData.items.reduce((acc: number, item: any) => acc + (Number(item.protein) || 0), 0),
+            totalCarbs: mealData.items.reduce((acc: number, item: any) => acc + (Number(item.carbs) || 0), 0),
+            totalFat: mealData.items.reduce((acc: number, item: any) => acc + (Number(item.fat) || 0), 0),
             dishes: mealData.items.map((item: any) => ({
-                dishKey: item.name.toLowerCase().replace(/ /g, "_"), // Simple mapping
                 dishName: item.name,
-                servings: 1, // Default
+                quantity: item.quantity,
+                calories: Number(item.calories) || 0,
+                protein: Number(item.protein) || 0,
+                carbs: Number(item.carbs) || 0,
+                fat: Number(item.fat) || 0,
             })),
         });
     };
@@ -148,7 +161,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         goal: convexUser.goal as Goal,
         targetWeight: convexUser.weightKg, // Placeholder
         activityLevel: convexUser.activityLevel as ActivityLevel,
-        dailyCalorieTarget: todayOverview?.plan?.targetCalories || 2000,
+        dailyCalorieTarget: todayOverview?.plan?.targetCalories || 0,
+        state: convexUser.state || "India",
+        healthIssues: convexUser.conditions || [],
     } : null;
 
     return (
