@@ -1,15 +1,13 @@
-I Love Hactoberfest!!! Let's gooooooo 🔥 
-<img width="500" height="897" alt="image" src="https://github.com/user-attachments/assets/0b441b22-88d3-44ca-87dc-806df450a651" />
-<img width="504" height="894" alt="image" src="https://github.com/user-attachments/assets/7ce7c855-3169-459c-8847-2b8b1cc97001" />
+<img width="1903" height="1018" alt="Screenshot 2026-02-02 114844" src="https://github.com/user-attachments/assets/d312007c-e524-4286-9bda-c2329045ead0" />
 
-CalMate is a smart and simple way to track your daily calorie intake. Using the power of Google's Gemini AI, you can simply take a picture of your food, and CalMate will handle the rest.
+CalMate is a smart and simple way to track your daily calorie intake. Using Google's Gemini AI, you can simply take a picture of your food, and CalMate will handle the rest.
 
 ## Features
 
 *   **AI-Powered Food Recognition:** Snap a photo of your meal, and our AI will identify the food and automatically log the calories for you.
 *   **Detailed Meal Logging:** Keep a comprehensive log of all your meals and snacks throughout the day.
 *   **In-depth Analysis:** Get insights into your eating habits with our detailed calorie and nutrient analysis.
-*   **Meal Planner:** Plan your meals in advance to stay on track with your health goals.
+*   **Meal Planner:** Plan your meals to stay on track with your health goals.
 *   **Personalized Dashboard:** View your daily progress at a glance on your personalized dashboard.
 *   **User Profiles:** Create a profile to track your long-term progress and set personal goals.
 
