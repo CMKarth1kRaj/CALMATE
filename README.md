@@ -29,5 +29,4 @@ CalMate uses Google's powerful Gemini AI to analyze the images of your food. Whe
 
 *   **Frontend:** React, TypeScript, Vite
 *   **AI:** Google Gemini
-
-View your app in AI Studio: https://ai.studio/apps/drive/1-DpGHSfzhsfx9IGg9XyG0xpxgiCr47r7
+*   **Backend:** Convex, Node Js
